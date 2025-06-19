@@ -1,12 +1,28 @@
 import playPauseButton from "./nuts-and-bolts/play-pause.js";
+import SimpleSynth from "./nuts-and-bolts/simple-synth.js";
+import bpmInput from "./nuts-and-bolts/bpm-input.js";
 
 let audioContext = new AudioContext();
+const synth = new SimpleSynth(audioContext);
+let bpm = 90;
+
+bpmInput(bpm, newBpm => {
+  bpm = newBpm;
+  resetState();
+});
 
 let loopStart;
+let lastBeat;
+let lastNote;
+
+function resetState() {
+  loopStart = audioContext.currentTime;
+  lastBeat = null;
+  lastNote = null;
+}
 
 function frame() {
   const timeSinceLoopStart = audioContext.currentTime - loopStart;
-  const bpm = 90;
   const notesPerBeat = 4;
   const beatLength = getBeatLength(bpm);
   const noteLength = getNoteLength(beatLength, notesPerBeat);
@@ -17,8 +33,26 @@ function frame() {
 
   const currentNoteInBeat = currentNote % notesPerBeat;
 
-  console.log(timeSinceLoopStart, beatLength, noteLength);
+  if (currentNote === lastNote) {
+    // Not a new note yet
+    return;
+  }
 
+  // Update which note we've played
+  lastNote = currentNote;
+
+  if (currentBeat === lastBeat) {
+    // Not a new beat yet
+    return;
+  }
+
+  // Update which beat we've played
+  lastBeat = currentBeat;
+
+  // Play note on the beat
+  synth.play(69, audioContext.currentTime, 0.25);
+
+  console.log(timeSinceLoopStart, beatLength, noteLength);
 }
 
 function loop() {
@@ -33,7 +67,7 @@ function loop() {
 
 async function init() {
   await audioContext.resume();
-  loopStart = audioContext.currentTime;
+  resetState();
 }
 
 function getBeatLength(bpm) {
