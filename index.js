@@ -6,8 +6,18 @@ let loopStart;
 
 function frame() {
   const timeSinceLoopStart = audioContext.currentTime - loopStart;
+  const bpm = 90;
+  const notesPerBeat = 4;
+  const beatLength = getBeatLength(bpm);
+  const noteLength = getNoteLength(beatLength, notesPerBeat);
 
-  console.log(timeSinceLoopStart);
+  const currentBeat = Math.floor(timeSinceLoopStart / beatLength);
+
+  const currentNote = Math.floor(timeSinceLoopStart / noteLength);
+
+  const currentNoteInBeat = currentNote % notesPerBeat;
+
+  console.log(timeSinceLoopStart, beatLength, noteLength);
 
 }
 
@@ -24,6 +34,15 @@ function loop() {
 async function init() {
   await audioContext.resume();
   loopStart = audioContext.currentTime;
+}
+
+function getBeatLength(bpm) {
+  const beatsPerSecond = bpm / 60;
+  return 1/beatsPerSecond;
+}
+
+function getNoteLength(beatLength, notesPerBeat) {
+  return beatLength / notesPerBeat;
 }
 
 playPauseButton(
